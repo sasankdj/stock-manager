@@ -21,7 +21,7 @@ const HomePage = () => {
                 params.sortBy = sortField;
                 params.sortOrder = sortDir;
             }
-            const { data } = await axios.get('http://localhost:5000/api/products', { params });
+            const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/api/products`, { params });
             setProducts(data);
         } catch (err) {
             setError('Failed to fetch products. Please try again later.');

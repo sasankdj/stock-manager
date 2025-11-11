@@ -33,7 +33,7 @@ const CheckoutPage = () => {
 
         try {
             const config = { headers: { Authorization: `Bearer ${userInfo.token}` } };
-            await axios.post('http://localhost:5000/api/orders', orderData, config);
+            await axios.post(`${import.meta.env.VITE_API_URL}/api/orders`, orderData, config);
 
             // Prepare WhatsApp message
             let message = `🛒 *New Order Received!* 🛒\n\n`;
