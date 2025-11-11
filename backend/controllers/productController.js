@@ -7,7 +7,7 @@ import { getProductsFromSheet } from '../services/sheetsService.js';
  */
 const getProducts = async (req, res) => {
   try {
-    const { search, sortBy, sortOrder } = req.query;
+    const { search, sortBy, sortOrder, category } = req.query;
 
     const rows = await getProductsFromSheet();
     if (!rows || rows.length === 0) {
@@ -72,6 +72,13 @@ const getProducts = async (req, res) => {
     if (search) {
       filteredProducts = products.filter(product =>
         product.itemName.toLowerCase().includes(search.toLowerCase())
+      );
+    }
+
+    // 🏷️ Category filter
+    if (category) {
+      filteredProducts = filteredProducts.filter(product =>
+        product.category.toLowerCase().includes(category.toLowerCase())
       );
     }
 
