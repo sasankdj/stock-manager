@@ -86,6 +86,12 @@ const AdminOrdersPage = () => {
                                         </ul>
                                     </div>
                                     <div className="flex space-x-2 mt-4">
+                                        {order.status === 'pending' && (
+                                            <>
+                                                <Button onClick={() => updateOrderStatus(order._id, 'shipped')}>Ship</Button>
+                                                <Button onClick={() => updateOrderStatus(order._id, 'delivered')}>Deliver</Button>
+                                            </>
+                                        )}
                                         {order.status === 'placed' && (
                                             <Button onClick={() => updateOrderStatus(order._id, 'completed')}>Complete</Button>
                                         )}

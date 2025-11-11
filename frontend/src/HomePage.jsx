@@ -6,23 +6,52 @@ const HomePage = () => {
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+    const [search, setSearch] = useState('');
+    const [sortBy, setSortBy] = useState('');
+    const [sortOrder, setSortOrder] = useState('asc');
+
+    const fetchProducts = async (searchTerm = '', sortField = '', sortDir = 'asc') => {
+        try {
+            setLoading(true);
+            const params = {};
+            if (searchTerm) params.search = searchTerm;
+            if (sortField) {
+                params.sortBy = sortField;
+                params.sortOrder = sortDir;
+            }
+            const { data } = await axios.get('http://localhost:5000/api/products', { params });
+            setProducts(data);
+        } catch (err) {
+            setError('Failed to fetch products. Please try again later.');
+            console.error(err);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
-        const fetchProducts = async () => {
-            try {
-                setLoading(true);
-                const { data } = await axios.get('http://localhost:5000/api/products');
-                setProducts(data);
-            } catch (err) {
-                setError('Failed to fetch products. Please try again later.');
-                console.error(err);
-            } finally {
-                setLoading(false);
-            }
-        };
-
         fetchProducts();
     }, []);
+
+    const handleSearchChange = (e) => {
+        setSearch(e.target.value);
+    };
+
+    const handleSearchClick = () => {
+        fetchProducts(search, sortBy, sortOrder);
+    };
+
+    const handleSortChange = (e) => {
+        const value = e.target.value;
+        setSortBy(value);
+        fetchProducts(search, value, sortOrder);
+    };
+
+    const handleSortOrderChange = (e) => {
+        const value = e.target.value;
+        setSortOrder(value);
+        fetchProducts(search, sortBy, value);
+    };
 
     if (loading) return <div className="text-center py-10">Loading products...</div>;
     if (error) return <div className="text-center py-10 text-red-500">{error}</div>;
@@ -30,6 +59,40 @@ const HomePage = () => {
     return (
         <div>
             <h1 className="text-3xl font-bold mb-8">Latest Products</h1>
+            <div className="mb-6 flex flex-col sm:flex-row gap-4">
+                <div className="flex flex-1 gap-2">
+                    <input
+                        type="text"
+                        placeholder="Search products..."
+                        value={search}
+                        onChange={handleSearchChange}
+                        className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                    <button
+                        onClick={handleSearchClick}
+                        className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                        Search
+                    </button>
+                </div>
+                <select
+                    value={sortBy}
+                    onChange={handleSortChange}
+                    className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                    <option value="">Sort by...</option>
+                    <option value="itemName">Name</option>
+                    <option value="mrp">Price</option>
+                </select>
+                <select
+                    value={sortOrder}
+                    onChange={handleSortOrderChange}
+                    className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                    <option value="asc">Ascending</option>
+                    <option value="desc">Descending</option>
+                </select>
+            </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                 {products.map((product, index) => (
                     <ProductCard key={product._id || index} product={product} />

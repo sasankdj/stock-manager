@@ -13,6 +13,10 @@ const addOrderItems = async (req, res) => {
         return res.status(400).json({ message: 'No order items' });
     }
 
+    if (!customerPhone || customerPhone.trim() === '') {
+        return res.status(400).json({ message: 'Customer phone is required' });
+    }
+
     try {
         const order = new Order({
             items: items.map(item => ({
@@ -23,6 +27,7 @@ const addOrderItems = async (req, res) => {
             userId: req.user._id,
             totalPrice,
             totalQty,
+            status: 'pending',
             customerName,
             customerPhone,
         });
@@ -118,16 +123,22 @@ const getOrderById = async (req, res) => {
  */
 const updateOrderStatus = async (req, res) => {
     const { status } = req.body;
+    console.log(`Updating order ${req.params.id} to status ${status}`);
     try {
-        const order = await Order.findById(req.params.id);
-        if (order) {
-            order.status = status;
-            const updatedOrder = await order.save();
+        const updatedOrder = await Order.findOneAndUpdate(
+            { _id: req.params.id },
+            { status },
+            { new: true }
+        );
+        if (updatedOrder) {
+            console.log(`Order updated successfully: ${updatedOrder._id}, new status: ${updatedOrder.status}`);
             res.json(updatedOrder);
         } else {
+            console.log(`Order not found: ${req.params.id}`);
             res.status(404).json({ message: 'Order not found' });
         }
     } catch (error) {
+        console.error('Error updating order status:', error);
         res.status(500).json({ message: 'Server Error' });
     }
 };
