@@ -6,7 +6,7 @@ import authRoutes from './routes/auth.js';
 import productRoutes from './routes/products.js';
 import orderRoutes from './routes/orders.js';
 import sheetsRoutes from './routes/sheets.js';
-
+import {testAuth} from './services/sheetsService.js';
 dotenv.config();
 
 const app = express();
@@ -37,5 +37,5 @@ const startServer = async () => {
 };
 
 startServer();
-
+testAuth()
 export default app;

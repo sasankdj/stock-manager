@@ -15,7 +15,7 @@ const getAuth = () => {
   const auth = new google.auth.GoogleAuth({
     credentials: {
       client_email: process.env.GOOGLE_CLIENT_EMAIL,
-      // Convert escaped newlines to actual newlines
+      // Convert escaped newlines to real newlines
       private_key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n'),
     },
     scopes: ['https://www.googleapis.com/auth/spreadsheets'],
@@ -24,9 +24,7 @@ const getAuth = () => {
   return auth;
 };
 
-/**
- * ✅ Returns a Google Sheets API client
- */
+
 const getGoogleSheet = async (auth) => {
   const client = await auth.getClient();
   const googleSheet = google.sheets({ version: 'v4', auth: client });
@@ -97,3 +95,16 @@ export const addOrderToSheet = async (orderData) => {
     console.error('❌ Error adding order to Google Sheet:', error);
   }
 };
+
+export const testAuth = async () => {
+       try {
+         const auth = getAuth();
+         const client = await auth.getClient();
+         const tokens = await client.getAccessToken();
+         console.log('✅ Auth successful, access token:', tokens.token);
+         return true;
+       } catch (error) {
+         console.error('❌ Auth failed:', error);
+         return false;
+       }
+     };
