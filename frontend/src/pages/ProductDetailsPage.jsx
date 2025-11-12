@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import axios from 'axios';
 import { useCart } from '../context/CartContext';
 import { Button } from '../components/ui/Button';
+import { Plus, Minus } from 'lucide-react';
 
 const ProductDetailsPage = () => {
     const { id } = useParams();
@@ -10,6 +11,7 @@ const ProductDetailsPage = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const { addToCart } = useCart();
+    const [quantity, setQuantity] = useState(1);
 
     useEffect(() => {
         const fetchProduct = async () => {
@@ -34,6 +36,10 @@ const ProductDetailsPage = () => {
 
     const placeholderImage = 'https://via.placeholder.com/500x500.png?text=No+Image';
 
+    const handleAddToCart = () => {
+        addToCart(product, quantity);
+    };
+
     return (
         <div className="grid md:grid-cols-2 gap-8">
             <div>
@@ -52,9 +58,22 @@ const ProductDetailsPage = () => {
                     </p>
                 </div>
 
+                <div className="flex items-center space-x-4 my-6">
+                    <p className="font-semibold">Quantity:</p>
+                    <div className="flex items-center space-x-2">
+                        <Button variant="outline" size="icon" onClick={() => setQuantity(q => Math.max(1, q - 1))}>
+                            <Minus className="h-4 w-4" />
+                        </Button>
+                        <span className="text-lg font-bold w-12 text-center">{quantity}</span>
+                        <Button variant="outline" size="icon" onClick={() => setQuantity(q => Math.min(product.qty, q + 1))}>
+                            <Plus className="h-4 w-4" />
+                        </Button>
+                    </div>
+                </div>
+
                 <Button
                     size="lg"
-                    onClick={() => addToCart(product)}
+                    onClick={handleAddToCart}
                     disabled={product.qty === 0}
                 >
                     {product.qty > 0 ? 'Add to Cart' : 'Out of Stock'}

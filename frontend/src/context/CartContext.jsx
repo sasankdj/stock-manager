@@ -8,9 +8,22 @@ export const useCart = () => useContext(CartContext);
 const cartReducer = (state, action) => {
     switch (action.type) {
         case 'ADD_TO_CART': {
-            const newItem = action.payload;
-            const newCartItem = { ...newItem, qty: 1, cartId: Date.now() + Math.random() };
-            const cartItems = [...state.cartItems, newCartItem];
+            const { product, quantity } = action.payload;
+            const existingItem = state.cartItems.find(item => item._id === product._id);
+
+            let cartItems;
+            if (existingItem) {
+                // If item exists, update its quantity
+                cartItems = state.cartItems.map(item =>
+                    item._id === product._id
+                        ? { ...item, qty: item.qty + quantity }
+                        : item
+                );
+            } else {
+                // If item doesn't exist, add it as a new item
+                const newCartItem = { ...product, qty: quantity, cartId: Date.now() + Math.random() };
+                cartItems = [...state.cartItems, newCartItem];
+            }
             return { ...state, cartItems };
         }
         case 'REMOVE_FROM_CART': {
@@ -60,8 +73,8 @@ export const CartProvider = ({ children }) => {
         }
     }, [state.cartItems, userInfo]);
 
-    const addToCart = (product) => {
-        dispatch({ type: 'ADD_TO_CART', payload: product });
+    const addToCart = (product, quantity = 1) => {
+        dispatch({ type: 'ADD_TO_CART', payload: { product, quantity } });
     };
 
     const removeFromCart = (id) => {
