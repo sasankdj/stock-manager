@@ -11,17 +11,33 @@ const AdminDashboard = () => {
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     const { userInfo } = useAuth();
-
-    const fetchData = async () => {
+ 
+    const fetchData = async (forceRefetch = false) => {
         setLoading(true);
         const config = { headers: { Authorization: `Bearer ${userInfo.token}` } };
         try {
+            const cachedProducts = sessionStorage.getItem('products');
+
+            if (cachedProducts && !forceRefetch) {
+                setProducts(JSON.parse(cachedProducts));
+            } else {
+                const productsRes = await axios.get(`${import.meta.env.VITE_API_URL}/api/products`, config);
+                setProducts(productsRes.data);
+                sessionStorage.setItem('products', JSON.stringify(productsRes.data));
+            }
+
+            // Fetch orders every time as they are more dynamic
             const [ordersRes, productsRes] = await Promise.all([
                 axios.get(`${import.meta.env.VITE_API_URL}/api/orders`, config),
-                axios.get(`${import.meta.env.VITE_API_URL}/api/products`, config)
+                // Products are now fetched conditionally above
             ]);
-            setOrders(ordersRes.data);
-            setProducts(productsRes.data);
+            setOrders(ordersRes.data); 
+            // If we didn't get products from cache, set them from the API response.
+            if (!cachedProducts || forceRefetch) {
+                const productsRes = await axios.get(`${import.meta.env.VITE_API_URL}/api/products`, config);
+                setProducts(productsRes.data);
+                sessionStorage.setItem('products', JSON.stringify(productsRes.data));
+            }
         } catch (error) {
             console.error("Failed to fetch admin data", error);
         } finally {
@@ -36,10 +52,11 @@ const AdminDashboard = () => {
     const handleSync = async () => {
         alert('Syncing products with Google Sheet...');
         const config = { headers: { Authorization: `Bearer ${userInfo.token}` } };
+        sessionStorage.removeItem('products'); // Invalidate cache
         try {
             const { data } = await axios.post(`${import.meta.env.VITE_API_URL}/api/sheets/sync`, {}, config);
             alert(data.message);
-            fetchData(); // Refresh data after sync
+            fetchData(true); // Force refetch data after sync
         } catch (error) {
             alert('Sync failed. Check console for details.');
             console.error(error);
