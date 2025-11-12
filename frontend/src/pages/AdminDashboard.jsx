@@ -17,8 +17,8 @@ const AdminDashboard = () => {
         const config = { headers: { Authorization: `Bearer ${userInfo.token}` } };
         try {
             const [ordersRes, productsRes] = await Promise.all([
-                axios.get('http://localhost:5000/api/orders', config),
-                axios.get('http://localhost:5000/api/products', config)
+                axios.get(`${import.meta.env.VITE_API_URL}/api/orders`, config),
+                axios.get(`${import.meta.env.VITE_API_URL}/api/products`, config)
             ]);
             setOrders(ordersRes.data);
             setProducts(productsRes.data);
@@ -37,7 +37,7 @@ const AdminDashboard = () => {
         alert('Syncing products with Google Sheet...');
         const config = { headers: { Authorization: `Bearer ${userInfo.token}` } };
         try {
-            const { data } = await axios.post('http://localhost:5000/api/sheets/sync', {}, config);
+            const { data } = await axios.post(`${import.meta.env.VITE_API_URL}/api/sheets/sync`, {}, config);
             alert(data.message);
             fetchData(); // Refresh data after sync
         } catch (error) {

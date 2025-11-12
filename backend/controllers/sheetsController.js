@@ -85,9 +85,12 @@ const syncProducts = async (req, res) => {
             },
         }));
 
-        await Product.bulkWrite(ops);
+        // Don't await this on Vercel to avoid function timeouts.
+        // The sync will run in the background.
+        Product.bulkWrite(ops);
+
         res.json({
-            message: `✅ Synced ${validRows.length} products successfully!`,
+            message: `✅ Sync started for ${validRows.length} products.`,
             count: validRows.length
         });
 

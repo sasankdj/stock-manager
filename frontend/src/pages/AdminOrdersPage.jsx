@@ -16,7 +16,7 @@ const AdminOrdersPage = () => {
             try {
                 setLoading(true);
                 const config = { headers: { Authorization: `Bearer ${userInfo.token}` } };
-                const { data } = await axios.get('http://localhost:5000/api/orders', config);
+                const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/api/orders`, config);
                 setOrders(data);
             } catch (err) {
                 setError('Failed to fetch orders. Please try again later.');
@@ -34,7 +34,7 @@ const AdminOrdersPage = () => {
     const updateOrderStatus = async (orderId, newStatus) => {
         try {
             const config = { headers: { Authorization: `Bearer ${userInfo.token}` } };
-            await axios.put(`http://localhost:5000/api/orders/${orderId}/status`, { status: newStatus }, config);
+            await axios.put(`${import.meta.env.VITE_API_URL}/api/orders/${orderId}/status`, { status: newStatus }, config);
             setOrders(orders.map(order => order._id === orderId ? { ...order, status: newStatus } : order));
         } catch (err) {
             console.error('Failed to update order status:', err);

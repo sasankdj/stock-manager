@@ -15,7 +15,7 @@ const ProductDetailsPage = () => {
         const fetchProduct = async () => {
             try {
                 setLoading(true);
-                const { data } = await axios.get(`http://localhost:5000/api/products/${id}`);
+                const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/api/products/${id}`);
                 setProduct(data);
             } catch (err) {
                 setError('Product not found.');
