@@ -26,7 +26,7 @@ const CartPage = () => {
                     <div className="md:col-span-2 space-y-4">
                         {cartItems.map(item => (
                             <Card key={item.cartId} className="flex items-center p-4">
-                                <img src={item.image || 'https://via.placeholder.com/100x100?text=No+Image'} alt={item.itemName} className="w-20 h-20 object-cover rounded-md" />
+                                {/* <img src={item.image || 'https://via.placeholder.com/100x100?text=No+Image'} alt={item.itemName} className="w-20 h-20 object-cover rounded-md" /> */}
                                 <div className="flex-grow ml-4">
                                     <h3 className="font-semibold">{item.itemName}</h3>
                                     <p className="text-sm text-muted-foreground">₹{item.mrp}</p>
