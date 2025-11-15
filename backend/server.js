@@ -17,6 +17,9 @@ app.use(cors());
 app.get('/', (req, res) => {
   res.send('API is running...');
 });
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: "ok", message: "Server is running" });
+});
 
 app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
