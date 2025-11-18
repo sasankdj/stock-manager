@@ -10,6 +10,7 @@ const HomePage = () => {
     const [sortBy, setSortBy] = useState('');
     const [sortOrder, setSortOrder] = useState('asc');
     const [category, setCategory] = useState('');
+    const [categories, setCategories] = useState([]);
 
     const fetchProducts = async (searchTerm = '', sortField = '', sortDir = 'asc', categoryTerm = '') => {
         try {
@@ -31,8 +32,18 @@ const HomePage = () => {
         }
     };
 
+    const fetchCategories = async () => {
+        try {
+            const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/api/products/categories`);
+            setCategories(data);
+        } catch (err) {
+            console.error('Failed to fetch categories:', err);
+        }
+    };
+
     useEffect(() => {
         fetchProducts();
+        fetchCategories();
     }, []);
 
     const handleSearchChange = (e) => {
@@ -106,8 +117,11 @@ const HomePage = () => {
                     className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                     <option value="">All Categories</option>
-                    <option value="A1 8% REBAL LIST">A1 8% REBAL LIST</option>
-                    {/* Add more categories as needed */}
+                    {categories.map((cat) => (
+                        <option key={cat} value={cat}>
+                            {cat}
+                        </option>
+                    ))}
                 </select>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">

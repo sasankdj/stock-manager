@@ -18,6 +18,7 @@ const syncProducts = async (req, res) => {
         const dataRows = rows.slice(1);
 
         let lastItemName = null;
+        let currentCategory = 'Uncategorized';
         const validRows = [];
 
         for (let row of dataRows) {
@@ -28,17 +29,13 @@ const syncProducts = async (req, res) => {
             // Skip empty rows
             if ([itemName, pack, batchNo, expiryDate, qty, mrp].every(x => !x)) continue;
 
-            // Section headers like "A1 8% REBAL LIST" or totals (only number in last col)
-            if (
-                itemName &&
-                !pack &&
-                !batchNo &&
-                !expiryDate &&
-                !qty &&
-                !mrp
-            ) {
-                continue; // header row — skip
+            // Detect category header rows (e.g. ["A1 8% REBAL LIST"])
+            // Category if itemName exists and batchNo is empty (assuming categories have no batchNo)
+            if (itemName && !batchNo) {
+                currentCategory = itemName;
+                continue; // skip header row itself
             }
+
             if (!itemName) {
                 // Carry forward the previous item name for continuation rows
                 if (lastItemName) row[0] = lastItemName;
@@ -50,15 +47,26 @@ const syncProducts = async (req, res) => {
             // Skip subtotal/total rows (e.g., only number at the end)
             if (!itemName && parseFloat(mrp)) continue;
 
-            // Push cleaned data
+            // Parse expiryDate if valid, else null
+            let parsedExpiry = null;
+            if (row[3]) {
+                const date = new Date(row[3]);
+                if (!isNaN(date.getTime())) {
+                    parsedExpiry = date;
+                }
+            }
+
+            // Push cleaned data with category
             validRows.push({
                 itemName: row[0],
                 pack: row[1],
                 batchNo: row[2],
-                expiryDate: row[3],
+                expiryDate: parsedExpiry,
                 qty: parseFloat(row[4]) || 0,
                 pqty: parseFloat(row[5]) || 0,
-                mrp: parseFloat(row[6]) || 0
+                mrp: parseFloat(row[6]) || 0,
+                category: currentCategory,
+                image: ''
             });
         }
 
@@ -79,6 +87,8 @@ const syncProducts = async (req, res) => {
                         qty: prod.qty,
                         pqty: prod.pqty,
                         mrp: prod.mrp,
+                        category: prod.category,
+                        image: prod.image,
                     },
                 },
                 upsert: true,

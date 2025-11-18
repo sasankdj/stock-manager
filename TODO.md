@@ -1,1 +1,3 @@
-- Update HomePage.jsx to add a search button and change search to trigger on button click instead of on every keystroke.
+- [x] Update syncProducts in backend/controllers/sheetsController.js to include category detection logic
+- [x] Modify getProducts in backend/controllers/productController.js to fetch from MongoDB
+- [x] Modify getProductById in backend/controllers/productController.js to fetch from MongoDB

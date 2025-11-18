@@ -40,5 +40,5 @@ const startServer = async () => {
 };
 
 startServer();
-testAuth()
+// testAuth()
 export default app;

@@ -1,4 +1,4 @@
-import { getProductsFromSheet } from '../services/sheetsService.js';
+import Product from '../models/Product.js';
 
 /**
  * @desc    Get all products (with category, search, sort)
@@ -9,82 +9,19 @@ const getProducts = async (req, res) => {
   try {
     const { search, sortBy, sortOrder, category } = req.query;
 
-    const rows = await getProductsFromSheet();
-    if (!rows || rows.length === 0) {
-      return res.status(404).json({ message: 'No products found in Google Sheet.' });
-    }
-
-    const dataRows = rows; // no header to skip, range starts from A2
-    const products = [];
-
-    let lastItemName = null;
-    let currentCategory = 'Uncategorized';
-
-    for (let rawRow of dataRows) {
-      // Normalize: pad to 7 columns & strip hidden characters
-      const row = [...rawRow, '', '', '', '', '', '', '']
-        .slice(0, 7)
-        .map(v =>
-          v
-            ? v
-                .toString()
-                .replace(/[\r\n\t\u00A0]+/g, '') // clean hidden chars
-                .trim()
-            : ''
-        );
-
-      const [itemName, pack, batchNo, expiryDate, qty, pqty, mrp] = row;
-
-      // Skip completely empty rows
-      if ([itemName, pack, batchNo, expiryDate, qty, mrp].every(x => !x)) continue;
-
-      // 🟩 Detect category header rows (e.g. ["A1 8% REBAL LIST"])
-      // Category if itemName exists and batchNo is empty (assuming categories have no batchNo)
-      if (itemName && !batchNo) {
-        currentCategory = itemName;
-        continue; // skip header row itself
-      }
-
-      // Carry forward last item name for blank rows
-      const currentItemName = itemName || lastItemName;
-      if (!currentItemName) continue;
-      lastItemName = currentItemName;
-
-      // Skip totals/subtotals
-      if (/^(total|subtotal|sum)$/i.test(currentItemName)) continue;
-
-      // Push cleaned product
-      products.push({
-        itemName: currentItemName,
-        pack,
-        batchNo,
-        expiryDate,
-        qty: parseFloat(qty) || 0,
-        pqty: parseFloat(pqty) || 0,
-        mrp: parseFloat(mrp) || 0,
-        image: '',
-        category: currentCategory,
-      });
-    }
-
-    // 🔍 Search filter
-    let filteredProducts = products;
+    let query = {};
     if (search) {
-      filteredProducts = products.filter(product =>
-        product.itemName.toLowerCase().includes(search.toLowerCase())
-      );
+      query.itemName = { $regex: search, $options: 'i' };
+    }
+    if (category) {
+      query.category = { $regex: category, $options: 'i' };
     }
 
-    // 🏷️ Category filter
-    if (category) {
-      filteredProducts = filteredProducts.filter(product =>
-        product.category.toLowerCase().includes(category.toLowerCase())
-      );
-    }
+    let products = await Product.find(query);
 
     // 🔄 Sorting
     if (sortBy) {
-      filteredProducts.sort((a, b) => {
+      products.sort((a, b) => {
         let aValue = a[sortBy];
         let bValue = b[sortBy];
 
@@ -106,7 +43,7 @@ const getProducts = async (req, res) => {
       });
     }
 
-    res.json(filteredProducts);
+    res.json(products);
   } catch (error) {
     console.error('❌ Error fetching products:', error);
     res.status(500).json({ message: 'Server Error', error: error.message });
@@ -120,58 +57,7 @@ const getProducts = async (req, res) => {
  */
 const getProductById = async (req, res) => {
   try {
-    const rows = await getProductsFromSheet();
-    if (!rows || rows.length === 0) {
-      return res.status(404).json({ message: 'No products found in Google Sheet.' });
-    }
-
-    const dataRows = rows;
-    let lastItemName = null;
-    let currentCategory = 'Uncategorized';
-    let product = null;
-
-    for (let rawRow of dataRows) {
-      const row = [...rawRow, '', '', '', '', '', '', '']
-        .slice(0, 7)
-        .map(v =>
-          v
-            ? v
-                .toString()
-                .replace(/[\r\n\t\u00A0]+/g, '')
-                .trim()
-            : ''
-        );
-
-      const [itemName, pack, batchNo, expiryDate, qty, pqty, mrp] = row;
-
-      if ([itemName, pack, batchNo, expiryDate, qty, mrp].every(x => !x)) continue;
-
-      // Detect category header
-      if (itemName && !batchNo) {
-        currentCategory = itemName;
-        continue;
-      }
-
-      const currentItemName = itemName || lastItemName;
-      if (!currentItemName) continue;
-      lastItemName = currentItemName;
-
-      if (currentItemName === req.params.id) {
-        product = {
-          itemName: currentItemName,
-          pack,
-          batchNo,
-          expiryDate,
-          qty: parseFloat(qty) || 0,
-          pqty: parseFloat(pqty) || 0,
-          mrp: parseFloat(mrp) || 0,
-          image: '',
-          category: currentCategory,
-        };
-        break;
-      }
-    }
-
+    const product = await Product.findOne({ itemName: req.params.id });
     if (product) {
       res.json(product);
     } else {
@@ -183,4 +69,19 @@ const getProductById = async (req, res) => {
   }
 };
 
-export { getProducts, getProductById };
+/**
+ * @desc    Get all unique categories
+ * @route   GET /api/products/categories
+ * @access  Public
+ */
+const getCategories = async (req, res) => {
+  try {
+    const categories = await Product.distinct('category');
+    res.json(categories);
+  } catch (error) {
+    console.error('❌ Error fetching categories:', error);
+    res.status(500).json({ message: 'Server Error', error: error.message });
+  }
+};
+
+export { getProducts, getProductById, getCategories };
