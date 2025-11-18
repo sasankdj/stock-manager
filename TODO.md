@@ -1,3 +1,4 @@
-- [x] Update syncProducts in backend/controllers/sheetsController.js to include category detection logic
-- [x] Modify getProducts in backend/controllers/productController.js to fetch from MongoDB
-- [x] Modify getProductById in backend/controllers/productController.js to fetch from MongoDB
+- [x] Modify addOrderItems in backend/controllers/orderController.js to check stock and decrement product quantities upon order placement.
+- [x] Update frontend/src/pages/LoginPage.jsx to call AuthContext login function and store token after successful login.
+- [x] Test order placement functionality to ensure quantities decrease correctly.
+- [x] Test login functionality to ensure user is authenticated and token is stored.

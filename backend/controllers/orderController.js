@@ -1,4 +1,5 @@
 import Order from '../models/Order.js';
+import Product from '../models/Product.js';
 import { addOrderToSheet } from '../services/sheetsService.js';
 
 /**
@@ -18,6 +19,25 @@ const addOrderItems = async (req, res) => {
     }
 
     try {
+        // Check stock availability and decrement quantities
+        for (const item of items) {
+            const product = await Product.findOne({ itemName: item.itemName });
+            if (!product) {
+                return res.status(400).json({ message: `Product ${item.itemName} not found` });
+            }
+            if (product.qty < item.qty) {
+                return res.status(400).json({ message: `Insufficient stock for ${item.itemName}. Available: ${product.qty}` });
+            }
+        }
+
+        // Decrement quantities
+        for (const item of items) {
+            await Product.findOneAndUpdate(
+                { itemName: item.itemName },
+                { $inc: { qty: -item.qty } }
+            );
+        }
+
         const order = new Order({
             items: items.map(item => ({
                 itemName: item.itemName,

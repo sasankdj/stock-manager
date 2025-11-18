@@ -77,7 +77,7 @@ const HomePage = () => {
 
     return (
         <div>
-            <h1 className="text-3xl font-bold mb-8">Latest Products</h1>
+            <h1 className="text-3xl font-bold mb-8 text-foreground">Latest Products</h1>
             <div className="mb-6 flex flex-col sm:flex-row gap-4">
                 <div className="flex flex-1 gap-2">
                     <input
@@ -85,7 +85,7 @@ const HomePage = () => {
                         placeholder="Search products..."
                         value={search}
                         onChange={handleSearchChange}
-                        className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="flex-1 px-4 py-2 border border-border rounded-lg bg-input text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                     />
                     <button
                         onClick={handleSearchClick}
@@ -97,7 +97,7 @@ const HomePage = () => {
                 <select
                     value={sortBy}
                     onChange={handleSortChange}
-                    className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="px-4 py-2 border border-border rounded-lg bg-input text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                 >
                     <option value="">Sort by...</option>
                     <option value="itemName">Name</option>
@@ -106,7 +106,7 @@ const HomePage = () => {
                 <select
                     value={sortOrder}
                     onChange={handleSortOrderChange}
-                    className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="px-4 py-2 border border-border rounded-lg bg-input text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                 >
                     <option value="asc">Ascending</option>
                     <option value="desc">Descending</option>
@@ -114,7 +114,7 @@ const HomePage = () => {
                 <select
                     value={category}
                     onChange={handleCategoryChange}
-                    className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="px-4 py-2 border border-border rounded-lg bg-input text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                 >
                     <option value="">All Categories</option>
                     {categories.map((cat) => (
