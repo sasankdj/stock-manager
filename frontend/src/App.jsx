@@ -21,9 +21,9 @@ import AdminRoute from './components/AdminRoute'
 
 const App = () => {
   return (
-    <div className="flex flex-col min-h-screen bg-background text-foreground">
+    <div className="flex flex-col min-h-screen bg-beige text-foreground">
       <Navbar />
-      <main className="flex-grow container mx-auto p-4 md:p-6">
+      <main   >
         <Routes>
           {/* Public Routes */}
           <Route path="/" element={<LandingPage />} />

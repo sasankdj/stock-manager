@@ -64,7 +64,7 @@ const LandingPage = () => {
             initial="hidden"
             animate="visible"
           >
-            Revolutionizing Medical Stock
+            Sanjeevani Medical Agencies
           </motion.h1>
           <motion.p
             className="text-lg md:text-xl max-w-2xl mx-auto text-gray-200 mb-8"
@@ -73,7 +73,7 @@ const LandingPage = () => {
             animate="visible"
             style={{ transitionDelay: '0.3s' }}
           >
-            Seamlessly manage your medical inventory with cutting-edge technology. Real-time tracking, smart analytics, and effortless ordering.
+            wholesale prices on medicines and healthcare products.
           </motion.p>
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -132,16 +132,12 @@ const LandingPage = () => {
             to="/products"
             className="bg-white text-blue-600 font-bold py-3 px-8 rounded-full text-lg transition-transform transform hover:scale-105"
           >
-            View Live Stock
+            Explore Products
           </Link>
         </motion.div>
       </section>
 
-      {/* Footer */}
-      <footer className="bg-gray-900 py-6 text-center text-gray-400">
-        <p>&copy; {new Date().getFullYear()} Medical Stock Management. All Rights Reserved.</p>
-      </footer>
-
+      
       <style jsx>{`
         .text-shadow {
           text-shadow: 0px 2px 10px rgba(0, 0, 0, 0.5);

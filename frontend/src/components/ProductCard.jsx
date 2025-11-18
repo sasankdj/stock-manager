@@ -23,6 +23,8 @@ const ProductCard = ({ product }) => {
         addToCart(product, quantity);
         setShowQuantityModal(false);
         setQuantity(1); // Reset quantity for next time
+        // Close modal immediately for better UX
+        setShowQuantityModal(false);
     };
 
     const handleQuantityChange = (e) => {
@@ -52,7 +54,7 @@ const ProductCard = ({ product }) => {
                     </div>
                     <div className="flex space-x-2">
                         <Button onClick={() => setShowModal(true)}>View Details</Button>
-                        <Button onClick={() => setShowQuantityModal(true)} disabled={product.qty === 0}>{product.qty > 0 ? 'Add to Cart' : 'Out of Stock'}</Button>
+                        <Button onClick={() => setShowQuantityModal(true)} disabled={product.qty === 0} className="transition-colors duration-200">{product.qty > 0 ? 'Add to Cart' : 'Out of Stock'}</Button>
                     </div>
                 </CardFooter>
             </Card>

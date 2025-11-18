@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import ProductCard from './components/ProductCard';
 
@@ -11,6 +11,7 @@ const HomePage = () => {
     const [sortOrder, setSortOrder] = useState('asc');
     const [category, setCategory] = useState('');
     const [categories, setCategories] = useState([]);
+    const searchTimeoutRef = useRef(null);
 
     const fetchProducts = async (searchTerm = '', sortField = '', sortDir = 'asc', categoryTerm = '') => {
         try {
@@ -47,10 +48,21 @@ const HomePage = () => {
     }, []);
 
     const handleSearchChange = (e) => {
-        setSearch(e.target.value);
+        const value = e.target.value;
+        setSearch(value);
+        // Debounce search - fetch products after 300ms delay
+        if (searchTimeoutRef.current) {
+            clearTimeout(searchTimeoutRef.current);
+        }
+        searchTimeoutRef.current = setTimeout(() => {
+            fetchProducts(value, sortBy, sortOrder, category);
+        }, 300);
     };
 
     const handleSearchClick = () => {
+        if (searchTimeoutRef.current) {
+            clearTimeout(searchTimeoutRef.current);
+        }
         fetchProducts(search, sortBy, sortOrder, category);
     };
 

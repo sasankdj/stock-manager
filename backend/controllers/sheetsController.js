@@ -1,4 +1,4 @@
-import { getProductsFromSheet } from '../services/sheetsService.js';
+import { getProductsFromSheet, getHiddenProductsFromSheet, addHiddenProductToSheet, removeHiddenProductFromSheet } from '../services/sheetsService.js';
 import Product from '../models/Product.js';
 
 /**
@@ -113,4 +113,61 @@ const syncProducts = async (req, res) => {
     }
 };
 
-export { syncProducts };
+/**
+ * @desc    Get hidden products list
+ * @route   GET /api/sheets/hidden
+ * @access  Private/Admin
+ */
+const getHiddenProducts = async (req, res) => {
+    try {
+        const hiddenProducts = await getHiddenProductsFromSheet();
+        res.json(hiddenProducts);
+    } catch (error) {
+        console.error('Error fetching hidden products:', error);
+        res.status(500).json({ message: 'Server Error', error: error.message });
+    }
+};
+
+/**
+ * @desc    Add product to hidden list
+ * @route   POST /api/sheets/hidden
+ * @access  Private/Admin
+ */
+const addHiddenProduct = async (req, res) => {
+    const { productName } = req.body;
+
+    if (!productName || productName.trim() === '') {
+        return res.status(400).json({ message: 'Product name is required' });
+    }
+
+    try {
+        await addHiddenProductToSheet(productName.trim());
+        res.json({ message: 'Product added to hidden list' });
+    } catch (error) {
+        console.error('Error adding hidden product:', error);
+        res.status(500).json({ message: 'Server Error', error: error.message });
+    }
+};
+
+/**
+ * @desc    Remove product from hidden list
+ * @route   DELETE /api/sheets/hidden
+ * @access  Private/Admin
+ */
+const removeHiddenProduct = async (req, res) => {
+    const { productName } = req.body;
+
+    if (!productName || productName.trim() === '') {
+        return res.status(400).json({ message: 'Product name is required' });
+    }
+
+    try {
+        await removeHiddenProductFromSheet(productName.trim());
+        res.json({ message: 'Product removed from hidden list' });
+    } catch (error) {
+        console.error('Error removing hidden product:', error);
+        res.status(500).json({ message: 'Server Error', error: error.message });
+    }
+};
+
+export { syncProducts, getHiddenProducts, addHiddenProduct, removeHiddenProduct };

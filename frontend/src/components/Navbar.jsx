@@ -18,7 +18,7 @@ const Navbar = () => {
     const cartItemCount = cartItems.reduce((acc, item) => acc + item.qty, 0);
 
     return (
-        <nav className="bg-card shadow-md">
+        <nav className="bg-green-400 text-white shadow-md">
             <div className="container mx-auto px-4 py-3 flex justify-between items-center">
                 <Link to="/" className="text-2xl font-bold text-primary">
                     Sanjeevani Medical Agencies

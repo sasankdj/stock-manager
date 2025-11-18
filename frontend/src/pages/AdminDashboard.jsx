@@ -6,9 +6,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 const AdminDashboard = () => {
-    const [view, setView] = useState('dashboard'); // 'dashboard', 'products', 'orders'
+    const [view, setView] = useState('dashboard'); // 'dashboard', 'products', 'orders', 'hidden'
     const [orders, setOrders] = useState([]);
     const [products, setProducts] = useState([]);
+    const [hiddenProducts, setHiddenProducts] = useState([]);
+    const [newHiddenProduct, setNewHiddenProduct] = useState('');
     const [loading, setLoading] = useState(true);
     const { userInfo } = useAuth();
  
@@ -27,11 +29,12 @@ const AdminDashboard = () => {
             }
 
             // Fetch orders every time as they are more dynamic
-            const [ordersRes, productsRes] = await Promise.all([
+            const [ordersRes, hiddenRes] = await Promise.all([
                 axios.get(`${import.meta.env.VITE_API_URL}/api/orders`, config),
-                // Products are now fetched conditionally above
+                axios.get(`${import.meta.env.VITE_API_URL}/api/sheets/hidden`, config),
             ]);
-            setOrders(ordersRes.data); 
+            setOrders(ordersRes.data);
+            setHiddenProducts(hiddenRes.data);
             // If we didn't get products from cache, set them from the API response.
             if (!cachedProducts || forceRefetch) {
                 const productsRes = await axios.get(`${import.meta.env.VITE_API_URL}/api/products`, config);
@@ -63,6 +66,35 @@ const AdminDashboard = () => {
         }
     };
 
+    const handleAddHiddenProduct = async () => {
+        if (!newHiddenProduct.trim()) {
+            alert('Please enter a product name');
+            return;
+        }
+        const config = { headers: { Authorization: `Bearer ${userInfo.token}` } };
+        try {
+            await axios.post(`${import.meta.env.VITE_API_URL}/api/sheets/hidden`, { productName: newHiddenProduct.trim() }, config);
+            alert('Product added to hidden list');
+            setNewHiddenProduct('');
+            fetchData(true); // Refresh data
+        } catch (error) {
+            alert('Failed to add product to hidden list');
+            console.error(error);
+        }
+    };
+
+    const handleRemoveHiddenProduct = async (productName) => {
+        const config = { headers: { Authorization: `Bearer ${userInfo.token}` } };
+        try {
+            await axios.delete(`${import.meta.env.VITE_API_URL}/api/sheets/hidden`, { data: { productName }, headers: { Authorization: `Bearer ${userInfo.token}` } });
+            alert('Product removed from hidden list');
+            fetchData(true); // Refresh data
+        } catch (error) {
+            alert('Failed to remove product from hidden list');
+            console.error(error);
+        }
+    };
+
     const totalSales = orders.reduce((acc, order) => acc + order.totalPrice, 0);
     const salesData = orders.reduce((acc, order) => {
         const date = new Date(order.createdAt).toLocaleDateString();
@@ -80,6 +112,7 @@ const AdminDashboard = () => {
                     <Button variant={view === 'dashboard' ? 'secondary' : 'ghost'} onClick={() => setView('dashboard')}>Dashboard</Button>
                     <Button variant={view === 'products' ? 'secondary' : 'ghost'} onClick={() => setView('products')}>Products</Button>
                     <Button variant={view === 'orders' ? 'secondary' : 'ghost'} onClick={() => setView('orders')}>Orders</Button>
+                    <Button variant={view === 'hidden' ? 'secondary' : 'ghost'} onClick={() => setView('hidden')}>Hidden Products</Button>
                 </nav>
             </aside>
             <main className="flex-grow p-6">
@@ -130,6 +163,36 @@ const AdminDashboard = () => {
                                         <thead className="bg-gray-50"><tr><th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th><th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Customer</th><th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total</th></tr></thead>
                                         <tbody className="bg-white divide-y divide-gray-200">
                                             {orders.map(o => <tr key={o._id}><td className="px-6 py-4 whitespace-nowrap">{new Date(o.createdAt).toLocaleDateString()}</td><td className="px-6 py-4 whitespace-nowrap">{o.userId.name}</td><td className="px-6 py-4 whitespace-nowrap">₹{o.totalPrice.toFixed(2)}</td></tr>)}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        )}
+                        {view === 'hidden' && (
+                            <div>
+                                <h1 className="text-2xl font-bold mb-4">Hidden Products</h1>
+                                <div className="mb-4">
+                                    <input
+                                        type="text"
+                                        placeholder="Enter product name to hide"
+                                        value={newHiddenProduct}
+                                        onChange={(e) => setNewHiddenProduct(e.target.value)}
+                                        className="border border-gray-300 rounded px-3 py-2 mr-2"
+                                    />
+                                    <Button onClick={handleAddHiddenProduct}>Add to Hidden</Button>
+                                </div>
+                                <div className="bg-white shadow rounded-lg">
+                                    <table className="min-w-full divide-y divide-gray-200">
+                                        <thead className="bg-gray-50"><tr><th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Product Name</th><th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th></tr></thead>
+                                        <tbody className="bg-white divide-y divide-gray-200">
+                                            {hiddenProducts.map((product, index) => (
+                                                <tr key={index}>
+                                                    <td className="px-6 py-4 whitespace-nowrap">{product}</td>
+                                                    <td className="px-6 py-4 whitespace-nowrap">
+                                                        <Button variant="destructive" onClick={() => handleRemoveHiddenProduct(product)}>Remove</Button>
+                                                    </td>
+                                                </tr>
+                                            ))}
                                         </tbody>
                                     </table>
                                 </div>

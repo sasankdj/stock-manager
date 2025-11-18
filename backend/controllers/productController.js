@@ -1,4 +1,5 @@
 import Product from '../models/Product.js';
+import { getHiddenProductsFromSheet } from '../services/sheetsService.js';
 
 /**
  * @desc    Get all products (with category, search, sort)
@@ -18,6 +19,11 @@ const getProducts = async (req, res) => {
     }
 
     let products = await Product.find(query);
+
+    // Filter out hidden products for regular users
+    const hiddenProducts = await getHiddenProductsFromSheet();
+    const hiddenProductNames = hiddenProducts.map(name => name.toString().trim().toLowerCase());
+    products = products.filter(product => !hiddenProductNames.includes(product.itemName.toLowerCase()));
 
     // 🔄 Sorting
     if (sortBy) {

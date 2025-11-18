@@ -32,7 +32,7 @@ const getGoogleSheet = async (auth) => {
 };
 
 /**
- * ✅ Fetches product data from the 'Stock' sheet
+ * ✅ Fetches product data from the 'Stock' sheet, excluding products from 'notdisplay' sheet
  */
 export const getProductsFromSheet = async () => {
   try {
@@ -52,10 +52,123 @@ export const getProductsFromSheet = async () => {
       range: response.data.range,
     });
 
-    return response.data.values || [];
+    // Get hidden products from 'notdisplay' sheet
+    const hiddenRange = 'notdisplay!A:A'; // Assuming product names are in column A
+    let hiddenProducts = [];
+    try {
+      const hiddenResponse = await googleSheet.spreadsheets.values.get({
+        spreadsheetId,
+        range: hiddenRange,
+      });
+      hiddenProducts = hiddenResponse.data.values?.flat().map(name => name.toString().trim().toLowerCase()) || [];
+      console.log('Hidden products:', hiddenProducts);
+    } catch (error) {
+      console.log('No notdisplay sheet found or error fetching hidden products:', error.message);
+    }
+
+    // Filter out hidden products
+    const filteredValues = response.data.values?.filter(row => {
+      const itemName = row[0]?.toString().trim().toLowerCase();
+      return !hiddenProducts.includes(itemName);
+    }) || [];
+
+    return filteredValues;
   } catch (error) {
     console.error('❌ Error fetching products from Google Sheet:', error);
     return [];
+  }
+};
+
+/**
+ * ✅ Fetches hidden product names from the 'notdisplay' sheet
+ */
+export const getHiddenProductsFromSheet = async () => {
+  try {
+    const auth = getAuth();
+    const googleSheet = await getGoogleSheet(auth);
+
+    const spreadsheetId = process.env.GOOGLE_SHEET_ID;
+    const range = 'notdisplay!A:A'; // Assuming product names are in column A
+
+    const response = await googleSheet.spreadsheets.values.get({
+      spreadsheetId,
+      range,
+    });
+
+    const hiddenProducts = response.data.values?.flat().map(name => name.toString().trim()) || [];
+    console.log('✅ Hidden products from sheet:', hiddenProducts);
+
+    return hiddenProducts;
+  } catch (error) {
+    console.error('❌ Error fetching hidden products from Google Sheet:', error);
+    return [];
+  }
+};
+
+/**
+ * ✅ Adds a product name to the 'notdisplay' sheet to hide it
+ */
+export const addHiddenProductToSheet = async (productName) => {
+  try {
+    const auth = getAuth();
+    const googleSheet = await getGoogleSheet(auth);
+
+    const spreadsheetId = process.env.GOOGLE_SHEET_ID;
+    const range = 'notdisplay!A:A';
+
+    const values = [[productName]];
+
+    await googleSheet.spreadsheets.values.append({
+      spreadsheetId,
+      range,
+      valueInputOption: 'USER_ENTERED',
+      resource: { values },
+    });
+
+    console.log('✅ Product added to hidden list in Google Sheet');
+  } catch (error) {
+    console.error('❌ Error adding hidden product to Google Sheet:', error);
+  }
+};
+
+/**
+ * ✅ Removes a product name from the 'notdisplay' sheet
+ */
+export const removeHiddenProductFromSheet = async (productName) => {
+  try {
+    const auth = getAuth();
+    const googleSheet = await getGoogleSheet(auth);
+
+    const spreadsheetId = process.env.GOOGLE_SHEET_ID;
+    const range = 'notdisplay!A:A';
+
+    // Get current hidden products
+    const response = await googleSheet.spreadsheets.values.get({
+      spreadsheetId,
+      range,
+    });
+
+    const hiddenProducts = response.data.values?.flat() || [];
+    const filteredProducts = hiddenProducts.filter(name => name.toString().trim() !== productName);
+
+    // Clear and rewrite the column
+    await googleSheet.spreadsheets.values.clear({
+      spreadsheetId,
+      range,
+    });
+
+    if (filteredProducts.length > 0) {
+      await googleSheet.spreadsheets.values.update({
+        spreadsheetId,
+        range,
+        valueInputOption: 'USER_ENTERED',
+        resource: { values: filteredProducts.map(name => [name]) },
+      });
+    }
+
+    console.log('✅ Product removed from hidden list in Google Sheet');
+  } catch (error) {
+    console.error('❌ Error removing hidden product from Google Sheet:', error);
   }
 };
 
